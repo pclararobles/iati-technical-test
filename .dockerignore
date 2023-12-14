@@ -1,0 +1,17 @@
+# Python
+**/__pycache__
+
+# Git
+.gitignore
+.git
+
+# Docker
+Dockerfile
+docker-compose.yml
+
+# Visual code project settings
+.vscode
+
+# App settings
+.env
+env-*

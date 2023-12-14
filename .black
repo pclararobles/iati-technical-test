@@ -1,0 +1,28 @@
+[tool.black]
+line-length = 100
+target_version = ['py312']
+skip-string-normalization = false
+include = '\.pyi?$'
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.mypy_cache
+    | \.venv
+    | \.circleci
+    | \.vscode
+    | \.env
+    | \.coverage
+    | build
+    | dist
+    | docs
+    | locale
+    | env-*
+    | dashboard\/static
+    | dashboard\/templates
+  )
+  | migrations   # exclude directories in any directory-tree level
+  | __pycache__
+)
+'''

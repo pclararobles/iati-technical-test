@@ -1,0 +1,81 @@
+# Cleverea's Microservice backend [development]
+version: "3.7"
+
+services:
+
+  #---- Web service ----#
+  iati-test:
+    build:
+      context: .
+      target: iati-test-dev
+    image: iati-test-dev
+    env_file:
+     - .env
+    environment:
+      - TERM=xterm
+      - LC_ALL=en_US.UTF-8
+      - LANG=en_US.UTF-8
+      - LANGUAGE=en_US.UTF-8
+      - DJANGO_SETTINGS_MODULE=config.settings.dev
+    volumes:
+      - type: bind
+        source: ./
+        target: /usr/src/app
+    ports:
+      - "8000:8000"
+    networks:
+      - default-net
+    depends_on:
+      - postgres
+
+  #---- Database service ----#
+  postgres:
+    image: postgres:16.1-alpine3.19
+    environment:
+      - POSTGRES_DB=${PSQL_DB_DATABASE}
+      - POSTGRES_USER=${PSQL_DB_USERNAME}
+      - POSTGRES_PASSWORD=${PSQL_DB_PASSWORD}
+    volumes:
+      - type: volume
+        source: postgres-iati-data
+        target: /var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - default-net
+
+  #---- Django commands ----#
+  manage:
+    image: iati-test-dev
+    env_file:
+     - .env
+    environment:
+      - LC_ALL=en_US.UTF-8
+      - LANG=en_US.UTF-8
+      - LANGUAGE=en_US.UTF-8
+      - DJANGO_SETTINGS_MODULE=config.settings.dev
+    volumes:
+      - type: bind
+        source: ./
+        target: /usr/src/app
+    networks:
+      - default-net
+    depends_on:
+      - postgres
+    entrypoint: python manage.py
+
+  #---- Formatter service ----#
+  format:
+    image: iati-test-dev
+    volumes:
+      - type: bind
+        source: ./
+        target: /usr/src/app
+    entrypoint: black --config .black .
+
+
+volumes:
+  postgres-iati-data:
+
+networks:
+  default-net:
