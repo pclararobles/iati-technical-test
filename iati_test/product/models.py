@@ -17,12 +17,31 @@ class ProductMixin(TimeStampedModelMixin):
     catalog_inclusion_date = models.DateField(default=timezone.now, editable=False)
     picture_url = models.URLField()
     price_per_unit = models.DecimalField(max_digits=10, decimal_places=2)
-    initial_stock = models.IntegerField(editable=False)
+    initial_stock = models.IntegerField()
     current_stock = models.IntegerField()
-    description = models.TextField()
+    description = models.TextField(blank=True, editable=False)
 
     class Meta:
         abstract = True
+
+    def __init__(self, *args, **kwargs):
+        """
+        Store the initial stock in a separate variable to be able to check if
+        it is being modified.
+        """
+        super().__init__(*args, **kwargs)
+
+        self._initial_initial_stock = self.initial_stock
+
+    def save(self, *args, **kwargs):
+        """
+        Overwritten save method to raise an error if the initial stock is being
+        modified.
+        """
+        if self.pk is not None and self.initial_stock != self._initial_initial_stock:
+            raise ValueError("The initial stock cannot be modified.")
+
+        super(ProductMixin, self).save(*args, **kwargs)
 
 
 class Shirt(ProductMixin):
@@ -33,7 +52,7 @@ class Shirt(ProductMixin):
     size = models.CharField(max_length=255)
     size_type = models.CharField(max_length=255, choices=SizeType.choices())
     sleeves = models.BooleanField()
-    materials = models.ManyToManyField("product.Material", through="product.ShirtCompostion")
+    materials = models.ManyToManyField("product.Material", through="product.ShirtMaterialComposition")
 
     class Meta:
         verbose_name = "Shirt"
@@ -47,7 +66,7 @@ class Shirt(ProductMixin):
         super(Shirt, self).save(*args, **kwargs)
 
         material_descriptions = []
-        for composition in self.shirtcomposition_set.all():
+        for composition in self.shirtmaterialcomposition_set.all():
             material_descriptions.append(f"{composition.material.name} ({composition.percentage}%)")
 
         self.description = (
@@ -72,15 +91,15 @@ class Material(models.Model):
     name = models.CharField(max_length=255)
 
     class Meta:
-        verbose_name = "Shirt Material"
-        verbose_name_plural = "Shirt Materials"
-        db_table = "shirt_material"
+        verbose_name = "Material"
+        verbose_name_plural = "Materials"
+        db_table = "material"
 
     def __str__(self):
         return self.name
 
 
-class ShirtCompostion(TimeStampedModelMixin):
+class ShirtMaterialComposition(TimeStampedModelMixin):
     """
     A model containing the material composition of a shirt.
     """
@@ -90,9 +109,9 @@ class ShirtCompostion(TimeStampedModelMixin):
     percentage = models.DecimalField(max_digits=5, decimal_places=2)
 
     class Meta:
-        verbose_name = "Shirt Composition"
-        verbose_name_plural = "Shirt Compositions"
-        db_table = "shirt_composition"
+        verbose_name = "Shirt Material Composition"
+        verbose_name_plural = "Shirt Material Compositions"
+        db_table = "shirt_material_composition"
 
 
 class Cap(ProductMixin):

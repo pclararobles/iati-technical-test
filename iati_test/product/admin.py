@@ -1,10 +1,10 @@
 from django.contrib import admin
 
-from iati_test.product.models import Cap, Material, Shirt, ShirtCompostion
+from iati_test.product.models import Cap, Material, Shirt, ShirtMaterialComposition
 
 
-class ShirtCompositionInline(admin.TabularInline):
-    model = ShirtCompostion
+class ShirtMaterialCompositionInline(admin.TabularInline):
+    model = ShirtMaterialComposition
     extra = 1
 
 
@@ -19,8 +19,16 @@ class ShirtAdmin(admin.ModelAdmin):
         "description",
     )
     list_filter = ("brand", "size_type", "sleeves")
-    inlines = [ShirtCompositionInline]
+    inlines = [ShirtMaterialCompositionInline]
     search_fields = ("brand", "main_color", "size")
+
+    def get_readonly_fields(self, request, obj=None):
+        """
+        If the object already exists, the initial stock cannot be modified.
+        """
+        if obj is not None:
+            return self.readonly_fields + ("initial_stock",)
+        return self.readonly_fields
 
 
 class MaterialAdmin(admin.ModelAdmin):
@@ -39,6 +47,14 @@ class CapAdmin(admin.ModelAdmin):
     )
     list_filter = ("brand",)
     search_fields = ("brand", "main_color")
+
+    def get_readonly_fields(self, request, obj=None):
+        """
+        If the object already exists, the initial stock cannot be modified.
+        """
+        if obj is not None:
+            return self.readonly_fields + ("initial_stock",)
+        return self.readonly_fields
 
 
 admin.site.register(Shirt, ShirtAdmin)

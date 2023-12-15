@@ -3,7 +3,7 @@ from enum import Enum
 
 class SizeType(Enum):
     MAN = "man"
-    WOMEN = "women"
+    WOMAN = "woman"
     UNISEX = "unisex"
 
     @classmethod

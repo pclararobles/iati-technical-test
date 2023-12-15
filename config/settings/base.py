@@ -52,7 +52,9 @@ DJANGO_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 ]
-THIRD_PARTY_APPS = []
+THIRD_PARTY_APPS = [
+    "django_extensions",
+]
 LOCAL_APPS = [
     "iati_test.core.apps.CoreConfig",
     "iati_test.product.apps.ProductConfig",
