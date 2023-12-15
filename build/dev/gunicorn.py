@@ -23,10 +23,10 @@ limit_request_line = 4094  # default
 
 
 # Server Mechanics
-chdir = "usr/src/app"
+chdir = "/usr/src/app"
 daemon = False  # default
 group = None  # default
-pidfile = "usr/src/app/gunicorn.pid"
+pidfile = "/usr/src/app/gunicorn.pid"
 umask = 0  # default
 user = None  # default
 worker_tmp_dir = "/dev/shm"   # http://docs.gunicorn.org/en/stable/faq.html#blocking-os-fchmod
