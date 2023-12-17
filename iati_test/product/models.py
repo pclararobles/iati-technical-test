@@ -20,6 +20,8 @@ class ProductMixin(TimeStampedModelMixin):
     initial_stock = models.IntegerField()
     current_stock = models.IntegerField()
     description = models.TextField(blank=True, editable=False)
+    is_active = models.BooleanField(default=True)
+    deactivated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         abstract = True
@@ -35,13 +37,40 @@ class ProductMixin(TimeStampedModelMixin):
 
     def save(self, *args, **kwargs):
         """
-        Overwritten save method to raise an error if the initial stock is being
-        modified.
+        Overwritten save method to update the description field, manage
+        deletions and prevent the initial stock from being modified.
         """
+        #: Prevent the initial stock from being modified
         if self.pk is not None and self.initial_stock != self._initial_initial_stock:
             raise ValueError("The initial stock cannot be modified.")
 
+        #: Manage deletions
+        if not self.is_active and self.deactivated_at is None:
+            self.deactivated_at = timezone.now()
+        if self.is_active and self.deactivated_at is not None:
+            self.deactivated_at = None
+
         super(ProductMixin, self).save(*args, **kwargs)
+
+        #: Update the description field
+        new_description = self.get_description()
+        if self.description != new_description:
+            self.description = new_description
+            kwargs["force_insert"] = False
+            super(ProductMixin, self).save(*args, **kwargs, update_fields=["description"])
+        else:
+            super(ProductMixin, self).save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        """
+        Overwrite the delete method to perform a soft delete.
+        """
+        if not self.is_active:
+            raise ValueError("The product is already inactive.")
+
+        self.is_active = False
+        self.deactivated_at = timezone.now()
+        self.save(update_fields=["is_active", "deactivated_at"])
 
 
 class Shirt(ProductMixin):
@@ -61,19 +90,17 @@ class Shirt(ProductMixin):
         verbose_name_plural = "Shirts"
         db_table = "shirt"
 
-    def save(self, *args, **kwargs):
+    def get_description(self) -> str:
         """
-        Overwritten save method to update the description field.
+        Get the description of a shirt.
         """
-        super(Shirt, self).save(*args, **kwargs)
-
         material_descriptions = [
             f"{composition.material.name} ({composition.percentage}%)"
             for composition in self.shirtmaterialcomposition_set.all()
         ]
 
-        new_description  = (
-            "This is a shirt. "
+        return (
+            "This is a shirt."
             f"Brand: {self.brand}. "
             f"Main Color: {self.main_color}. "
             f"Secondary Color: {self.secondary_color}. "
@@ -82,17 +109,6 @@ class Shirt(ProductMixin):
             f"Size Type: {self.size_type}. "
             f"Composition: {', '.join(material_descriptions)}. "
         )
-
-        if not self.pk:
-            self.description = new_description
-            super(Shirt, self).save(*args, **kwargs)
-        else:
-            if self.description != new_description:
-                self.description = new_description
-                kwargs["force_insert"] = False
-                super(Shirt, self).save(*args, **kwargs, update_fields=["description"])
-            else:
-                super(Shirt, self).save(*args, **kwargs)
 
 
 class Material(models.Model):
@@ -138,13 +154,14 @@ class Cap(ProductMixin):
         verbose_name_plural = "Caps"
         db_table = "cap"
 
-    def save(self, *args, **kwargs):
-        self.description = (
-            "This is a shirt."
+    def get_description(self) -> str:
+        """
+        Return the description of a cap.
+        """
+        return (
+            "This is a Cap."
             f"Brand: {self.brand}. "
             f"Main Color: {self.main_color}. "
             f"Secondary Color: {self.secondary_color}. "
             f"Catalog Inclusion Date: {self.catalog_inclusion_date}. "
         )
-
-        super(ProductMixin, self).save(*args, **kwargs)

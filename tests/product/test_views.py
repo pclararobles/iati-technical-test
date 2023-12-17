@@ -11,7 +11,9 @@ def test_products_api_view():
     client = APIClient()
     # Create test data using factories
     shirts = ShirtFactory.create_batch(5)
+    deactivated_shirts = ShirtFactory.create_batch(5, is_active=False)
     caps = CapFactory.create_batch(5)
+    deactivated_caps = CapFactory.create_batch(5, is_active=False)
 
     url = reverse("product:products-list")
     response = client.get(url)
@@ -27,3 +29,17 @@ def test_products_api_view():
     # Assert that caps are ordered by catalog_inclusion_date
     caps_dates = [cap["catalog_inclusion_date"] for cap in response.data["caps"]]
     assert caps_dates == sorted(caps_dates)
+
+    # Assert that deactivated shirts are not included
+    for deactivated_shirt in deactivated_shirts:
+        shirt_ids = [shirt["id"] for shirt in response.data["shirts"]]
+        assert deactivated_shirt.id not in shirt_ids
+
+    # Assert that deactivated caps are not included
+    for deactivated_cap in deactivated_caps:
+        cap_ids = [cap["id"] for cap in response.data["caps"]]
+        assert deactivated_cap.id not in cap_ids
+
+    # Assert initial_stock is not included
+    assert "initial_stock" not in response.data["shirts"][0]
+    assert "initial_stock" not in response.data["caps"][0]
