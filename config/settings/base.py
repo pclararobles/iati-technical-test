@@ -54,6 +54,9 @@ DJANGO_APPS = [
 ]
 THIRD_PARTY_APPS = [
     "django_extensions",
+    "django_filters",
+    "drf_yasg",
+    "rest_framework",
 ]
 LOCAL_APPS = [
     "iati_test.core.apps.CoreConfig",
@@ -142,3 +145,22 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# Django REST Framework
+# ------------------------------------------------------------------------------
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [],
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+    ],
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+    ],
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
+}
+
+SWAGGER_SETTINGS = {"USE_SESSION_AUTH": False}

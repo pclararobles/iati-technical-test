@@ -14,7 +14,7 @@ class ProductMixin(TimeStampedModelMixin):
     main_color = models.CharField(max_length=255)
     secondary_color = models.CharField(max_length=255)
     brand = models.CharField(max_length=255)
-    catalog_inclusion_date = models.DateField(default=timezone.now, editable=False)
+    catalog_inclusion_date = models.DateField(default=timezone.now)
     picture_url = models.URLField()
     price_per_unit = models.DecimalField(max_digits=10, decimal_places=2)
     initial_stock = models.IntegerField()
@@ -52,7 +52,9 @@ class Shirt(ProductMixin):
     size = models.CharField(max_length=255)
     size_type = models.CharField(max_length=255, choices=SizeType.choices())
     sleeves = models.BooleanField()
-    materials = models.ManyToManyField("product.Material", through="product.ShirtMaterialComposition")
+    materials = models.ManyToManyField(
+        "product.Material", through="product.ShirtMaterialComposition"
+    )
 
     class Meta:
         verbose_name = "Shirt"
@@ -65,11 +67,12 @@ class Shirt(ProductMixin):
         """
         super(Shirt, self).save(*args, **kwargs)
 
-        material_descriptions = []
-        for composition in self.shirtmaterialcomposition_set.all():
-            material_descriptions.append(f"{composition.material.name} ({composition.percentage}%)")
+        material_descriptions = [
+            f"{composition.material.name} ({composition.percentage}%)"
+            for composition in self.shirtmaterialcomposition_set.all()
+        ]
 
-        self.description = (
+        new_description  = (
             "This is a shirt. "
             f"Brand: {self.brand}. "
             f"Main Color: {self.main_color}. "
@@ -80,7 +83,16 @@ class Shirt(ProductMixin):
             f"Composition: {', '.join(material_descriptions)}. "
         )
 
-        super(Shirt, self).save(*args, **kwargs, update_fields=["description"])
+        if not self.pk:
+            self.description = new_description
+            super(Shirt, self).save(*args, **kwargs)
+        else:
+            if self.description != new_description:
+                self.description = new_description
+                kwargs["force_insert"] = False
+                super(Shirt, self).save(*args, **kwargs, update_fields=["description"])
+            else:
+                super(Shirt, self).save(*args, **kwargs)
 
 
 class Material(models.Model):

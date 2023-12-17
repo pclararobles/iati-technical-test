@@ -64,6 +64,26 @@ services:
       - postgres
     entrypoint: python manage.py
 
+  #---- Test service ----#
+  test-unit:
+    image: iati-test-dev
+    env_file:
+     - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.test
+      - LC_ALL=en_US.UTF-8
+      - LANG=en_US.UTF-8
+      - LANGUAGE=en_US.UTF-8
+    volumes:
+      - type: bind
+        source: ./
+        target: /usr/src/app
+    networks:
+      - default-net
+    depends_on:
+      - postgres
+    entrypoint: pytest --maxfail=10 --disable-warnings  -vv --disable-pytest-warnings
+
   #---- Formatter service ----#
   format:
     image: iati-test-dev

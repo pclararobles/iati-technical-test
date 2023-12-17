@@ -41,6 +41,7 @@ class ProductsBaseData:
             "secondary_color": "white",
             "brand": "Brixton",
             "picture_url": "https://hatstore.imgix.net/888588520734_1.jpg?auto=compress%2Cformat&w=544&h=435&fit=crop&q=50",
+            "catalog_inclusion_date": "2021-04-01",
             "initial_stock": 10,
             "current_stock": 10,
             "price_per_unit": 29.99,
@@ -52,6 +53,7 @@ class ProductsBaseData:
             "secondary_color": "brown",
             "brand": "Wigéns",
             "picture_url": "https://hatstore.imgix.net/7310651170292_1.jpg?auto=compress%2Cformat&w=544&h=435&fit=crop&q=50",
+            "catalog_inclusion_date": "2021-02-01",
             "initial_stock": 10,
             "current_stock": 10,
             "price_per_unit": 104.99,
@@ -63,6 +65,7 @@ class ProductsBaseData:
             "secondary_color": "white",
             "brand": "47 Brand",
             "picture_url": "https://hatstore.imgix.net/053838503168_4.jpg?auto=compress%2Cformat&w=544&h=435&fit=crop&q=50",
+            "catalog_inclusion_date": "2021-02-10",
             "initial_stock": 10,
             "current_stock": 10,
             "price_per_unit": 22.99,
@@ -74,6 +77,7 @@ class ProductsBaseData:
             "secondary_color": "orange",
             "brand": "Von Dutch",
             "picture_url": "https://hatstore.imgix.net/3614000768135_1.jpg?auto=compress%2Cformat&w=544&h=435&fit=crop&q=50",
+            "catalog_inclusion_date": "2022-03-01",
             "initial_stock": 10,
             "current_stock": 10,
             "price_per_unit": 26.99,
@@ -85,6 +89,7 @@ class ProductsBaseData:
             "secondary_color": "black",
             "brand": "New Era",
             "picture_url": "https://hatstore.imgix.net/197706759995_1.jpg?auto=compress%2Cformat&w=544&h=435&fit=crop&q=50",
+            "catalog_inclusion_date": "2021-01-01",
             "initial_stock": 10,
             "current_stock": 10,
             "price_per_unit": 34.99,
@@ -102,6 +107,7 @@ class ProductsBaseData:
             "price_per_unit": 19.99,
             "initial_stock": 10,
             "current_stock": 10,
+            "catalog_inclusion_date": "2021-02-01",
             "size": "L",
             "size_type": SizeType.MAN.value,
             "sleeves": False,
@@ -121,6 +127,7 @@ class ProductsBaseData:
             "price_per_unit": 39.99,
             "initial_stock": 10,
             "current_stock": 10,
+            "catalog_inclusion_date": "2021-01-01",
             "size": "M",
             "size_type": SizeType.WOMAN.value,
             "sleeves": False,
@@ -144,6 +151,7 @@ class ProductsBaseData:
             "price_per_unit": 99.99,
             "initial_stock": 10,
             "current_stock": 10,
+            "catalog_inclusion_date": "2021-03-01",
             "size": "M",
             "size_type": SizeType.MAN.value,
             "sleeves": True,
@@ -167,6 +175,7 @@ class ProductsBaseData:
             "price_per_unit": 54.99,
             "initial_stock": 10,
             "current_stock": 10,
+            "catalog_inclusion_date": "2021-04-01",
             "size": "M",
             "size_type": SizeType.UNISEX.value,
             "sleeves": False,
@@ -186,6 +195,7 @@ class ProductsBaseData:
             "price_per_unit": 49.99,
             "initial_stock": 10,
             "current_stock": 10,
+            "catalog_inclusion_date": "2020-12-01",
             "size": "L",
             "size_type": SizeType.UNISEX.value,
             "sleeves": False,
@@ -219,7 +229,6 @@ class ProductsBaseData:
 
         Material.objects.bulk_create(new_materials)
 
-
     @classmethod
     def _upload_caps(cls):
         """
@@ -251,12 +260,14 @@ class ProductsBaseData:
         max_id = 0
         for shirt_data in cls.SHIRTS:
             if not Shirt.objects.filter(id=shirt_data["id"]).exists():
-                shirt = Shirt(**{k: v for k, v in shirt_data.items() if k != 'materials'})
+                shirt = Shirt(**{k: v for k, v in shirt_data.items() if k != "materials"})
                 max_id = max(max_id, shirt_data["id"])
                 shirt.save()
                 for material_data in shirt_data["materials"]:
                     material = Material.objects.get(name=material_data["material"])
-                    shirt.materials.add(material, through_defaults={'percentage': material_data["percentage"]})
+                    shirt.materials.add(
+                        material, through_defaults={"percentage": material_data["percentage"]}
+                    )
 
         if max_id > 0:
             with connection.cursor() as cursor:
