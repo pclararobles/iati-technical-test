@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 
 from iati_test.product.models import Cap, Shirt
-from iati_test.product.serializers import CapSerializer, ProductSerializer
+from iati_test.product.serializers import CapSerializer, ProductSerializer, ShirtSerializer
 
 
 class ProductsAPIView(APIView):
@@ -50,4 +50,4 @@ class ShirtViewSet(ProductViewSet):
     """
 
     queryset = Shirt.objects.all()
-    serializer_class = CapSerializer
+    serializer_class = ShirtSerializer

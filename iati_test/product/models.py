@@ -53,7 +53,7 @@ class ProductMixin(TimeStampedModelMixin):
         super(ProductMixin, self).save(*args, **kwargs)
 
         #: Update the description field
-        new_description = self.get_description()
+        new_description = self._get_description()
         if self.description != new_description:
             self.description = new_description
             kwargs["force_insert"] = False
@@ -90,7 +90,7 @@ class Shirt(ProductMixin):
         verbose_name_plural = "Shirts"
         db_table = "shirt"
 
-    def get_description(self) -> str:
+    def _get_description(self) -> str:
         """
         Get the description of a shirt.
         """
@@ -154,7 +154,7 @@ class Cap(ProductMixin):
         verbose_name_plural = "Caps"
         db_table = "cap"
 
-    def get_description(self) -> str:
+    def _get_description(self) -> str:
         """
         Return the description of a cap.
         """
