@@ -59,6 +59,7 @@ THIRD_PARTY_APPS = [
     "rest_framework",
 ]
 LOCAL_APPS = [
+    "iati_test.cart.apps.CartConfig",
     "iati_test.core.apps.CoreConfig",
     "iati_test.product.apps.ProductConfig",
 ]
