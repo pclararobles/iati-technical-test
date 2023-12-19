@@ -18,7 +18,7 @@ class ProductsAPIView(APIView):
             200: ProductSerializer(),
         },
     )
-    def get(self, request, format=None):
+    def get(self, request, format=None) -> Response:
         shirts = Shirt.objects.filter(is_active=True).order_by("catalog_inclusion_date").all()
         caps = Cap.objects.filter(is_active=True).order_by("catalog_inclusion_date").all()
 

@@ -1,14 +1,17 @@
+from datetime import date
+
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework import status, views
 from rest_framework.response import Response
 
-from iati_test.cart.serializers import UpdateCartSerializer
+from iati_test.cart.models import Cart
+from iati_test.cart.serializers import GetCartSerializer, PostCartSerializer
 
 
 class CartView(views.APIView):
     """
-    View to add a product to the active cart.
+    View with main actions related to a cart.
     """
 
     @swagger_auto_schema(
@@ -44,9 +47,18 @@ class CartView(views.APIView):
             },
         )
     )
-    def post(self, request):
-        input_serializer = UpdateCartSerializer(data=request.data)
+    def post(self, request) -> Response:
+        input_serializer = PostCartSerializer(data=request.data)
 
         if input_serializer.is_valid(raise_exception=True):
             input_serializer.save()
             return Response({"message": "Product added to the cart."}, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(responses={200: GetCartSerializer()})
+    def get(self, request) -> Response:
+        """
+        Get the active cart.
+        """
+        active_cart, _ = Cart.objects.get_or_create(is_purchased=False, date=date.today())
+
+        return Response(GetCartSerializer(active_cart).data, status=status.HTTP_200_OK)

@@ -9,7 +9,12 @@ class CartProductSerializer(serializers.Serializer):
     shirt_id = serializers.IntegerField(required=False, allow_null=True)
     quantity = serializers.IntegerField(default=1)
 
-    def validate(self, data):
+    # Fields for GET request
+    description = serializers.CharField(read_only=True)
+    picture_url = serializers.CharField(read_only=True)
+    price_per_unit = serializers.DecimalField(read_only=True, max_digits=10, decimal_places=2)
+
+    def validate(self, data) -> dict:
         """
         Check that shirt_id or cap_id is provided.
         """
@@ -20,8 +25,21 @@ class CartProductSerializer(serializers.Serializer):
 
         return data
 
+    def to_representation(self, instance) -> dict:
+        """
+        Add product fields to the response.
+        """
+        data = super().to_representation(instance)
 
-class UpdateCartSerializer(serializers.Serializer):
+        product = instance.product
+        data["description"] = product.description
+        data["picture_url"] = product.picture_url
+        data["price_per_unit"] = product.price_per_unit
+
+        return data
+
+
+class PostCartSerializer(serializers.Serializer):
     products = CartProductSerializer(many=True)
 
     def save(self):
@@ -65,3 +83,11 @@ class UpdateCartSerializer(serializers.Serializer):
                     0, cart_product.product.current_stock - update_quantity
                 )
                 cart_product.product.save()
+
+
+class GetCartSerializer(serializers.ModelSerializer):
+    products = CartProductSerializer(many=True)
+
+    class Meta:
+        model = Cart
+        fields = ["id", "date", "products"]

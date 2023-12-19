@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from iati_test.cart.models import Cart, CartProduct
-from tests.cart.factories import CartFactory
+from tests.cart.factories import CartFactory, CartProductFactory
 from tests.product.factories import CapFactory, ShirtFactory
 
 
@@ -16,7 +16,7 @@ class CartViewTestCase(APITestCase):
     def _success_assertions(self, response, cap, shirt):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Cart.objects.count(), 1)
-        self.assertEqual(Cart.objects.first().cartproduct_set.count(), 2)
+        self.assertEqual(Cart.objects.first().products.count(), 2)
 
         cap.refresh_from_db()
         shirt.refresh_from_db()
@@ -99,3 +99,22 @@ class CartViewTestCase(APITestCase):
         response = self.client.post(self.url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_get_success(self):
+        cart = CartFactory()
+        cap = self.caps[0]
+        shirt = self.shirts[0]
+        cart_product_cap = CartProductFactory(cart=cart, cap=cap, quantity=2, shirt=None)
+        cart_product_shirt = CartProductFactory(cart=cart, shirt=shirt, quantity=1, cap=None)
+
+        response = self.client.get(self.url, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], cart.id)
+        self.assertEqual(len(response.data["products"]), 2)
+        self.assertEqual(response.data["products"][0]["cap_id"], cap.id)
+        self.assertEqual(response.data["products"][0]["quantity"], cart_product_cap.quantity)
+        self.assertEqual(response.data["products"][0]["shirt_id"], None)
+        self.assertEqual(response.data["products"][1]["cap_id"], None)
+        self.assertEqual(response.data["products"][1]["quantity"], cart_product_shirt.quantity)
+        self.assertEqual(response.data["products"][1]["shirt_id"], shirt.id)
