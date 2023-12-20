@@ -165,3 +165,7 @@ REST_FRAMEWORK = {
 }
 
 SWAGGER_SETTINGS = {"USE_SESSION_AUTH": False}
+
+# EMAIL CONFIGURATION
+# ------------------------------------------------------------------------------
+EMAIL_HOST_USER = environ.get("EMAIL_HOST_USER", "invalid-email")

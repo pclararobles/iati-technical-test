@@ -25,7 +25,7 @@ class CartProduct(TimeStampedModelMixin):
     """
 
     cart = models.ForeignKey("cart.Cart", on_delete=models.CASCADE, related_name="products")
-    quantity = models.PositiveIntegerField(default=1)
+    quantity = models.PositiveIntegerField(default=0)
 
     cap = models.ForeignKey("product.Cap", on_delete=models.PROTECT, null=True)
     shirt = models.ForeignKey("product.Shirt", on_delete=models.PROTECT, null=True)

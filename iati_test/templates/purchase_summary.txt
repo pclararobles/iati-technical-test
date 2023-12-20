@@ -1,0 +1,5 @@
+Dear {{ first_name }} {{ last_name }},
+
+Your postal code is {{ postal_code }}.
+Your email address is {{ email }}.
+Your phone number is {{ phone }}.

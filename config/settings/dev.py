@@ -18,3 +18,6 @@ MEDIA_URL = "/tmp/"
 
 # SHELL_PLUS
 SHELL_PLUS = "ipython"
+
+# EMAIL CONFIGURATION
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

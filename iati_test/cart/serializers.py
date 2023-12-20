@@ -91,3 +91,11 @@ class GetCartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = ["id", "date", "products"]
+
+
+class CustomerSerializer(serializers.Serializer):
+    first_name = serializers.CharField(max_length=100)
+    last_name = serializers.CharField(max_length=100)
+    postal_address = serializers.CharField(max_length=200)
+    email = serializers.EmailField()
+    phone = serializers.CharField(max_length=20)

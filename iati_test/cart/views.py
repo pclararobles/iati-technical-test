@@ -1,4 +1,7 @@
 from datetime import date
+from django.conf import settings
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -6,7 +9,7 @@ from rest_framework import status, views
 from rest_framework.response import Response
 
 from iati_test.cart.models import Cart
-from iati_test.cart.serializers import GetCartSerializer, PostCartSerializer
+from iati_test.cart.serializers import CustomerSerializer, GetCartSerializer, PostCartSerializer
 
 
 class CartView(views.APIView):
@@ -30,7 +33,7 @@ class CartView(views.APIView):
                             "shirt_id": openapi.Schema(
                                 type=openapi.TYPE_INTEGER, description="Shirt ID", format="int64"
                             ),
-                            "update_quantity": openapi.Schema(
+                            "quantity": openapi.Schema(
                                 type=openapi.TYPE_INTEGER,
                                 description="Update Quantity",
                                 format="int32",
@@ -62,3 +65,32 @@ class CartView(views.APIView):
         active_cart, _ = Cart.objects.get_or_create(is_purchased=False, date=date.today())
 
         return Response(GetCartSerializer(active_cart).data, status=status.HTTP_200_OK)
+
+
+class PurchaseView(views.APIView):
+    """
+    View to purchase the active cart.
+    """
+
+    def post(self, request, *args, **kwargs) -> Response:
+        serializer = CustomerSerializer(data=request.data)
+
+        try:
+            active_cart = Cart.objects.get(is_purchased=False, date=date.today())
+        except Cart.DoesNotExist:
+            return Response({"message": "No active cart found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if serializer.is_valid(raise_exception=True):
+            email_content = render_to_string("purchase_summary.txt", serializer.validated_data)
+
+            send_mail(
+                subject="Purchase Summary",
+                message=email_content,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[serializer.validated_data["email"]],
+                fail_silently=False,
+            )
+
+            active_cart.is_purchased = True
+            active_cart.save()
+            return Response({"message": "Purchase successful and email sent"})
